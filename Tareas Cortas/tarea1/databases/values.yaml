@@ -1,0 +1,6 @@
+enableMariaDB: true
+enablePrometheus: true
+enableGrafana: true
+enableECKOperator: true
+enableElasticsearch: true
+enableElasticsearchExporter: true
