@@ -35,7 +35,7 @@ dependencies:
     serviceMonitor:
       ## @param metrics.serviceMonitor.enabled Create ServiceMonitor Resource for scraping metrics using Prometheus Operator
       ##
-      enabled: true
+      enabled: false
       ## @param metrics.serviceMonitor.namespace Namespace for the ServiceMonitor Resource (defaults to the Release Namespace)
       ##
       namespace: ""
@@ -73,7 +73,7 @@ dependencies:
       prometheusRule:
         ## @param metrics.prometheusRule.enabled Create a PrometheusRule for Prometheus Operator
         ##
-        enabled: true
+        enabled: false
         ## @param metrics.prometheusRule.namespace Namespace for the PrometheusRule Resource (defaults to the Release Namespace)
         ##
         namespace: ""
@@ -104,7 +104,7 @@ dependencies:
     serviceMonitor:
       ## @param metrics.serviceMonitor.enabled Create ServiceMonitor Resource for scraping metrics using Prometheus Operator
       ##
-      enabled: true
+      enabled: false
       ## @param metrics.serviceMonitor.namespace Namespace for the ServiceMonitor Resource (defaults to the Release Namespace)
       ##
       namespace: ""
@@ -142,7 +142,7 @@ dependencies:
       prometheusRule:
         ## @param metrics.prometheusRule.enabled Create a PrometheusRule for Prometheus Operator
         ##
-        enabled: true
+        enabled: false
         ## @param metrics.prometheusRule.namespace Namespace for the PrometheusRule Resource (defaults to the Release Namespace)
         ##
         namespace: ""
@@ -169,7 +169,7 @@ dependencies:
     serviceMonitor:
       ## @param metrics.serviceMonitor.enabled Create ServiceMonitor Resource for scraping metrics using Prometheus Operator
       ##
-      enabled: true
+      enabled: false
       ## @param metrics.serviceMonitor.namespace Namespace for the ServiceMonitor Resource (defaults to the Release Namespace)
       ##
       namespace: ""
@@ -207,7 +207,7 @@ dependencies:
       prometheusRule:
         ## @param metrics.prometheusRule.enabled Create a PrometheusRule for Prometheus Operator
         ##
-        enabled: true
+        enabled: false
         ## @param metrics.prometheusRule.namespace Namespace for the PrometheusRule Resource (defaults to the Release Namespace)
         ##
         namespace: ""
