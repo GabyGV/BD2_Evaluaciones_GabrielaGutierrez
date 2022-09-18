@@ -32,67 +32,48 @@ dependencies:
     version: 11.3.0
     repository: https://charts.bitnami.com/bitnami
     condition: enableMariaDB
-    serviceMonitor:
-      ## @param metrics.serviceMonitor.enabled Create ServiceMonitor Resource for scraping metrics using Prometheus Operator
+    metrics:
+      ## @param metrics.enabled Start a side-car prometheus exporter
       ##
       enabled: true
-      ## @param metrics.serviceMonitor.namespace Namespace for the ServiceMonitor Resource (defaults to the Release Namespace)
-      ##
-      namespace: ""
-      ## @param metrics.serviceMonitor.interval Interval at which metrics should be scraped.
-      ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
-      ##
-      interval: ""
-      ## @param metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
-      ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
-      ##
-      scrapeTimeout: ""
-      ## @param metrics.serviceMonitor.labels Additional labels that can be used so ServiceMonitor will be discovered by Prometheus
-      ##
-      labels: {}
-      ## @param metrics.serviceMonitor.selector Prometheus instance selector labels
-      ## ref: https://github.com/bitnami/charts/tree/master/bitnami/prometheus-operator#prometheus-configuration
-      ##
-      selector: {}
-      ## @param metrics.serviceMonitor.relabelings RelabelConfigs to apply to samples before scraping
-      ##
-      relabelings: []
-      ## @param metrics.serviceMonitor.metricRelabelings MetricRelabelConfigs to apply to samples before ingestion
-      ##
-      metricRelabelings: []
-      ## @param metrics.serviceMonitor.honorLabels Specify honorLabels parameter to add the scrape endpoint
-      ##
-      honorLabels: false
-      ## @param metrics.serviceMonitor.jobLabel The name of the label on the target service to use as the job name in prometheus.
-      ##
-      jobLabel: ""
-      ## Custom PrometheusRule to be defined
-      ## The value is evaluated as a template, so, for example, the value can depend on .Release or .Chart
-      ## ref: https://github.com/coreos/prometheus-operator#customresourcedefinitions
-      ##
-      prometheusRule:
-        ## @param metrics.prometheusRule.enabled Create a PrometheusRule for Prometheus Operator
+      serviceMonitor:
+        ## @param metrics.serviceMonitor.enabled Create ServiceMonitor Resource for scraping metrics using Prometheus Operator
         ##
         enabled: true
-        ## @param metrics.prometheusRule.namespace Namespace for the PrometheusRule Resource (defaults to the Release Namespace)
+        ## @param metrics.serviceMonitor.namespace Namespace for the ServiceMonitor Resource (defaults to the Release Namespace)
         ##
         namespace: ""
-        ## @param metrics.prometheusRule.labels Additional labels that can be used so PrometheusRule will be discovered by Prometheus
+        ## @param metrics.serviceMonitor.interval Interval at which metrics should be scraped.
+        ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+        ##
+        interval: ""
+        ## @param metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
+        ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+        ##
+        scrapeTimeout: ""
+        ## @param metrics.serviceMonitor.labels Additional labels that can be used so ServiceMonitor will be discovered by Prometheus
         ##
         labels: {}
-        ## @param metrics.prometheusRule.rules PrometheusRule definitions
-        ## Make sure to constraint the rules to the current postgresql service.
-        ## rules:
-        ##   - alert: HugeReplicationLag
-        ##     expr: pg_replication_lag{service="{{ printf "%s-metrics" (include "common.names.fullname" .) }}"} / 3600 > 1
-        ##     for: 1m
-        ##     labels:
-        ##       severity: critical
-        ##     annotations:
-        ##       description: replication for {{ include "common.names.fullname" . }} PostgreSQL is lagging by {{ "{{ $value }}" }} hour(s).
-        ##       summary: PostgreSQL replication is lagging by {{ "{{ $value }}" }} hour(s).
+        ## @param metrics.serviceMonitor.selector Prometheus instance selector labels
+        ## ref: https://github.com/bitnami/charts/tree/master/bitnami/prometheus-operator#prometheus-configuration
         ##
-        rules: []
+        selector: {}
+        ## @param metrics.serviceMonitor.relabelings RelabelConfigs to apply to samples before scraping
+        ##
+        relabelings: []
+        ## @param metrics.serviceMonitor.metricRelabelings MetricRelabelConfigs to apply to samples before ingestion
+        ##
+        metricRelabelings: []
+        ## @param metrics.serviceMonitor.honorLabels Specify honorLabels parameter to add the scrape endpoint
+        ##
+        honorLabels: false
+        ## @param metrics.serviceMonitor.jobLabel The name of the label on the target service to use as the job name in prometheus.
+        ##
+        jobLabel: ""
+        ## Custom PrometheusRule to be defined
+        ## The value is evaluated as a template, so, for example, the value can depend on .Release or .Chart
+        ## ref: https://github.com/coreos/prometheus-operator#customresourcedefinitions
+        ##
   - name: kube-prometheus
     version: 8.1.7
     repository: https://charts.bitnami.com/bitnami
@@ -101,67 +82,47 @@ dependencies:
     version: 13.1.3
     repository: https://charts.bitnami.com/bitnami
     condition: enableMongoDB
-    serviceMonitor:
-      ## @param metrics.serviceMonitor.enabled Create ServiceMonitor Resource for scraping metrics using Prometheus Operator
+    metrics:
+      ## @param metrics.enabled Start a side-car prometheus exporter
       ##
       enabled: true
-      ## @param metrics.serviceMonitor.namespace Namespace for the ServiceMonitor Resource (defaults to the Release Namespace)
-      ##
-      namespace: ""
-      ## @param metrics.serviceMonitor.interval Interval at which metrics should be scraped.
-      ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
-      ##
-      interval: ""
-      ## @param metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
-      ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
-      ##
-      scrapeTimeout: ""
-      ## @param metrics.serviceMonitor.labels Additional labels that can be used so ServiceMonitor will be discovered by Prometheus
-      ##
-      labels: {}
-      ## @param metrics.serviceMonitor.selector Prometheus instance selector labels
-      ## ref: https://github.com/bitnami/charts/tree/master/bitnami/prometheus-operator#prometheus-configuration
-      ##
-      selector: {}
-      ## @param metrics.serviceMonitor.relabelings RelabelConfigs to apply to samples before scraping
-      ##
-      relabelings: []
-      ## @param metrics.serviceMonitor.metricRelabelings MetricRelabelConfigs to apply to samples before ingestion
-      ##
-      metricRelabelings: []
-      ## @param metrics.serviceMonitor.honorLabels Specify honorLabels parameter to add the scrape endpoint
-      ##
-      honorLabels: false
-      ## @param metrics.serviceMonitor.jobLabel The name of the label on the target service to use as the job name in prometheus.
-      ##
-      jobLabel: ""
-      ## Custom PrometheusRule to be defined
-      ## The value is evaluated as a template, so, for example, the value can depend on .Release or .Chart
-      ## ref: https://github.com/coreos/prometheus-operator#customresourcedefinitions
-      ##
-      prometheusRule:
-        ## @param metrics.prometheusRule.enabled Create a PrometheusRule for Prometheus Operator
+      serviceMonitor:
+        ## @param metrics.serviceMonitor.enabled Create ServiceMonitor Resource for scraping metrics using Prometheus Operator
         ##
         enabled: true
-        ## @param metrics.prometheusRule.namespace Namespace for the PrometheusRule Resource (defaults to the Release Namespace)
+        ## @param metrics.serviceMonitor.namespace Namespace for the ServiceMonitor Resource (defaults to the Release Namespace)
         ##
-        namespace: ""
-        ## @param metrics.prometheusRule.labels Additional labels that can be used so PrometheusRule will be discovered by Prometheus
+        namespace: "default"
+        ## @param metrics.serviceMonitor.interval Interval at which metrics should be scraped.
+        ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+        ##
+        interval: ""
+        ## @param metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
+        ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+        ##
+        scrapeTimeout: ""
+        ## @param metrics.serviceMonitor.labels Additional labels that can be used so ServiceMonitor will be discovered by Prometheus
         ##
         labels: {}
-        ## @param metrics.prometheusRule.rules PrometheusRule definitions
-        ## Make sure to constraint the rules to the current postgresql service.
-        ## rules:
-        ##   - alert: HugeReplicationLag
-        ##     expr: pg_replication_lag{service="{{ printf "%s-metrics" (include "common.names.fullname" .) }}"} / 3600 > 1
-        ##     for: 1m
-        ##     labels:
-        ##       severity: critical
-        ##     annotations:
-        ##       description: replication for {{ include "common.names.fullname" . }} PostgreSQL is lagging by {{ "{{ $value }}" }} hour(s).
-        ##       summary: PostgreSQL replication is lagging by {{ "{{ $value }}" }} hour(s).
+        ## @param metrics.serviceMonitor.selector Prometheus instance selector labels
+        ## ref: https://github.com/bitnami/charts/tree/master/bitnami/prometheus-operator#prometheus-configuration
         ##
-        rules: []
+        selector: {}
+        ## @param metrics.serviceMonitor.relabelings RelabelConfigs to apply to samples before scraping
+        ##
+        relabelings: []
+        ## @param metrics.serviceMonitor.metricRelabelings MetricRelabelConfigs to apply to samples before ingestion
+        ##
+        metricRelabelings: []
+        ## @param metrics.serviceMonitor.honorLabels Specify honorLabels parameter to add the scrape endpoint
+        ##
+        honorLabels: false
+        ## @param metrics.serviceMonitor.jobLabel The name of the label on the target service to use as the job name in prometheus.
+        ##
+        jobLabel: ""
+        ## Custom PrometheusRule to be defined
+        ## The value is evaluated as a template, so, for example, the value can depend on .Release or .Chart
+        ## ref: https://github.com/coreos/prometheus-operator#customresourcedefinitions
   - name: postgresql
     version: 11.9.1
     repository: https://charts.bitnami.com/bitnami
