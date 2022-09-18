@@ -1,4 +1,6 @@
 enableMariaDB: true
+enablePostgreSQL: true 
+enableMongoDB: true
 enablePrometheus: true
 enableGrafana: true
 enableECKOperator: true
