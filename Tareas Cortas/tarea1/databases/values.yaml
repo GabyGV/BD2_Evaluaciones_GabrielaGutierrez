@@ -6,3 +6,11 @@ enableGrafana: true
 enableECKOperator: true
 enableElasticsearch: true
 enableElasticsearchExporter: true
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    ## @param metrics.serviceMonitor.enabled Create ServiceMonitor Resource for scraping metrics using Prometheus Operator
+    ##
+    enabled: true
+      
