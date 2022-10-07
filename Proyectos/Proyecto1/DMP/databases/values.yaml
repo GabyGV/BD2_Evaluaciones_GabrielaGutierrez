@@ -1,2 +1,2 @@
 enableECKOperator: true
-enableMariaDB: false
+enableMariaDB: true

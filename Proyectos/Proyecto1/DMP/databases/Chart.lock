@@ -1,0 +1,9 @@
+dependencies:
+- name: eck-operator
+  repository: https://helm.elastic.co
+  version: 2.4.0
+- name: mariadb
+  repository: https://charts.bitnami.com/bitnami
+  version: 11.3.0
+digest: sha256:e1bfde1d8bd179a95b79141b54620c1163731a4b7548f58c26b8a83164eae8fd
+generated: "2022-10-07T11:20:26.8215388-06:00"
