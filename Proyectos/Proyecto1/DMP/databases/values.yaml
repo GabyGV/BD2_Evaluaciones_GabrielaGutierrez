@@ -1,2 +1,10 @@
 enableECKOperator: true
 enableMariaDB: true
+installESCluster: true
+mariadb: 
+  auth:
+    rootPassword: f1a9qqwhIJ
+rabbitmq: 
+  auth:
+    password: f1a9qqwhIJ
+    erlangCookie: GB
