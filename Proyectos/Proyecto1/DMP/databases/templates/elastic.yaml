@@ -3,8 +3,13 @@ apiVersion: elasticsearch.k8s.elastic.co/v1
 kind: Elasticsearch
 metadata:
   name: quickstart
+  username: admin    # required field for kubernetes.io/basic-auth
+  password: 2XY43bBC6ciR8k4186Y7KmVa
 spec:
   version: 8.4.3
+  auth:
+    fileRealm:
+    - secretName: my-es-data
   nodeSets:
   - name: default
     count: 1
@@ -20,4 +25,14 @@ spec:
   count: 1
   elasticsearchRef:
     name: quickstart
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-es-data
+type: kubernetes.io/basic-auth
+stringData:
+  username: admin    # required field for kubernetes.io/basic-auth
+  password: 2XY43bBC6ciR8k4186Y7KmVa # required field for kubernetes.io/basic-auth
+  roles: kibana_admin,ingest_admin  # optional, not part of kubernetes.io/basic-auth
 {{- end }}
