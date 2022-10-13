@@ -4,6 +4,48 @@ installESCluster: true
 mariadb: 
   auth:
     rootPassword: f1a9qqwhIJ
+  metrics:
+      ## @param metrics.enabled Start a side-car prometheus exporter
+      ##
+      enabled: true
+      serviceMonitor:
+        ## @param metrics.serviceMonitor.enabled Create ServiceMonitor Resource for scraping metrics using Prometheus Operator
+        ##
+        enabled: true
+        ## @param metrics.serviceMonitor.namespace Namespace for the ServiceMonitor Resource (defaults to the Release Namespace)
+        ##
+        namespace: ""
+        ## @param metrics.serviceMonitor.interval Interval at which metrics should be scraped.
+        ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+        ##
+        interval: ""
+        ## @param metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
+        ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+        ##
+        scrapeTimeout: ""
+        ## @param metrics.serviceMonitor.labels Additional labels that can be used so ServiceMonitor will be discovered by Prometheus
+        ##
+        labels: {}
+        ## @param metrics.serviceMonitor.selector Prometheus instance selector labels
+        ## ref: https://github.com/bitnami/charts/tree/master/bitnami/prometheus-operator#prometheus-configuration
+        ##
+        selector: {}
+        ## @param metrics.serviceMonitor.relabelings RelabelConfigs to apply to samples before scraping
+        ##
+        relabelings: []
+        ## @param metrics.serviceMonitor.metricRelabelings MetricRelabelConfigs to apply to samples before ingestion
+        ##
+        metricRelabelings: []
+        ## @param metrics.serviceMonitor.honorLabels Specify honorLabels parameter to add the scrape endpoint
+        ##
+        honorLabels: false
+        ## @param metrics.serviceMonitor.jobLabel The name of the label on the target service to use as the job name in prometheus.
+        ##
+        jobLabel: ""
+        ## Custom PrometheusRule to be defined
+        ## The value is evaluated as a template, so, for example, the value can depend on .Release or .Chart
+        ## ref: https://github.com/coreos/prometheus-operator#customresourcedefinitions
+        ##
 rabbitmq: 
   auth:
     password: f1a9qqwhIJ
