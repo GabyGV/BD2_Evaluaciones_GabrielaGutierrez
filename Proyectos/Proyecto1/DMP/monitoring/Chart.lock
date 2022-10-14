@@ -1,9 +1,12 @@
 dependencies:
+- name: eck-operator
+  repository: https://helm.elastic.co
+  version: 2.4.0
 - name: kube-prometheus
   repository: https://charts.bitnami.com/charts
   version: 8.1.7
 - name: grafana
   repository: https://charts.bitnami.com/charts
   version: 8.2.8
-digest: sha256:46f0fe50fb9a29962cc8ba89bf96f9037adb71e6f81aea5ac9e84a516970231f
-generated: "2022-10-07T11:37:59.2200869-06:00"
+digest: sha256:77c685468beccfeb7a951515c38f0587557edb1a0548593bb35b3d784d10a8e5
+generated: "2022-10-13T19:03:32.7629629-06:00"

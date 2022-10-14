@@ -1,0 +1,4 @@
+helm create <name>
+helm dependency update
+helm install <name> <name>
+helm upgrade <name> <name>

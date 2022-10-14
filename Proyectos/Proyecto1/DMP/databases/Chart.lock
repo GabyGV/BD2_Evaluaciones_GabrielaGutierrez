@@ -1,12 +1,9 @@
 dependencies:
-- name: eck-operator
-  repository: https://helm.elastic.co
-  version: 2.4.0
 - name: mariadb
   repository: https://charts.bitnami.com/bitnami
   version: 11.3.0
 - name: rabbitmq
   repository: https://charts.bitnami.com/bitnami
   version: 10.3.5
-digest: sha256:0db41d2219e1c75052a551bd8523ba3a39f352f97c6ade206072c9291d77014b
-generated: "2022-10-12T19:15:28.3555655-06:00"
+digest: sha256:94debb04c86bfdc0ff2dc9056be0eb9aec12c8fca82abef497c7eea93f114d21
+generated: "2022-10-13T19:03:50.9915657-06:00"
