@@ -25,9 +25,15 @@ appVersion: "1.16.0"
 
 
 dependencies:
+  - name: eck-operator
+    version: 2.4.0
+    repository: https://helm.elastic.co
+    condition: enableECKOperator
   - name: kube-prometheus
     version: 8.1.7
     repository: https://charts.bitnami.com/charts
+    condition: enablePrometheus
   - name: grafana
     version: 8.2.8
     repository: https://charts.bitnami.com/charts
+    condition: enableGrafana

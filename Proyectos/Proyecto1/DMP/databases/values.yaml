@@ -1,4 +1,3 @@
-enableECKOperator: true
 enableMariaDB: true
 installESCluster: true
 mariadb: 

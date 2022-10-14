@@ -1,3 +1,7 @@
+enableECKOperator: true
+enablePrometheus: true
+enableGrafana: true
+
 grafana:
   admin:
     password: AUimFfNtwM

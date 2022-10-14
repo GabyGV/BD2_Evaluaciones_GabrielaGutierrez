@@ -3,8 +3,6 @@ apiVersion: elasticsearch.k8s.elastic.co/v1
 kind: Elasticsearch
 metadata:
   name: quickstart
-  username: admin    # required field for kubernetes.io/basic-auth
-  password: 2XY43bBC6ciR8k4186Y7KmVa
 spec:
   version: 8.4.3
   auth:
