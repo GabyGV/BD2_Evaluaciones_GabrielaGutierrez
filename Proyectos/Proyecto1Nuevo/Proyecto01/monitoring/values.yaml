@@ -1,0 +1,7 @@
+enablePrometheus: true
+enableGrafana: true
+enableECK: true
+
+grafana:
+  admin:
+    password: "11111111"

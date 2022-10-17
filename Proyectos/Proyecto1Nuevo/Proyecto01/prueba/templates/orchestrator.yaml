@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prueba
+  labels:
+    app: prueba
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prueba
+  template:
+    metadata:
+      labels:
+        app: prueba
+    spec:
+      containers:
+        - name: prueba
+          image: achoy08/prueba
+          env:
+            - name: RABBITMQ
+              value: "RABBITMQ"
+            - name: RABBITMQPASS
+              value: "RABBITMQPASS"
+            - name: ELASTICPASS
+              valueFrom:
+                secretKeyRef:
+                  name: elastic-es-elastic-user
+                  key: elastic
+                  optional: false
+            - name: MARIADBENDPOINT
+              value: databases-mariadb-primary
+            - name: ELASTICENDPOINT
+              value: "elastic-es-default"
+            - name: ELASTICINDEX
+              value: "jobs"
+            - name: MARIADBPASS
+              valueFrom:
+                secretKeyRef:
+                  name: databases-mariadb
+                  key: mariadb-root-password
+                  optional: false
+            - name: MARIADBPORT
+              value: "3306"
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
