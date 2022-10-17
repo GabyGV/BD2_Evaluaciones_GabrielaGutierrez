@@ -1,0 +1,42 @@
+DELIMITER |
+BEGIN NOT ATOMIC
+    DECLARE x INT DEFAULT 0;
+    DECLARE ced INT DEFAULT 1000;
+    WHILE x <= 100 DO
+        
+      INSERT INTO Person(cedula,Nombre)
+		VALUES (ced+X, "Nombre");
+		SET x = x + 1;
+    END WHILE;
+END|
+DELIMITERS
+
+CREATE DATABASE people_db
+
+CREATE TABLE persona (
+	 id int auto_increment,
+    cedula INT,
+    nombre VARCHAR(64),    
+    primary key(id)
+	);
+
+
+  DELIMITER |
+BEGIN NOT ATOMIC
+    DECLARE x INT DEFAULT 0;
+    DECLARE ced INT DEFAULT 1000;
+    WHILE X <= 400 DO
+        
+      INSERT INTO persona(cedula,nombre)
+		VALUES (ced+X, "Nombre");
+		SET x = x + 1;
+    END WHILE;
+END|
+DELIMITER ;
+
+
+
+SELECT COUNT(1) FROM (SELECT * FROM persona ORDER BY cedula) AS a
+
+
+
