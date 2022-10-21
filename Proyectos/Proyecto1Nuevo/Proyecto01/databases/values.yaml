@@ -6,6 +6,9 @@ enableKibana: true
 enableRabbitmq: true
 
 mariadb:
+  auth:
+    rootPassword: f1a9qqwhIJ
+    replicationPassword: f1a9qqwhIJ
   # The architecture can be `standalone` or `replication`, in this case, we'll use replication since we need 2 replicas.
   architecture: replication
   primary:
@@ -35,4 +38,17 @@ mariadb:
     # The service monitor enables us to work with prometheus
     serviceMonitor: 
       enabled: true
-  
+
+rabbitmq:
+  metrics:
+    ## @param metrics.enabled Enable exposing RabbitMQ metrics to be gathered by Prometheus
+    ##
+    enabled: true
+    ## @param metrics.plugins Plugins to enable Prometheus metrics in RabbitMQ
+    ##
+    plugins: "rabbitmq_prometheus"
+    podAnnotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "{{ .Values.service.ports.metrics }}"
+    serviceMonitor:
+      enabled: true

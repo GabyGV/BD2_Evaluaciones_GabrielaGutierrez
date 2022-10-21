@@ -97,7 +97,7 @@ if (jobs["stages"][0]["name"]=="extract"):
     destination_queue_load = get_destination_queue_load(jobs)
     destination_queue_extract = get_destination_queue_extract(jobs)
     destination_queue_transform = get_destination_queue_transform(jobs, "add_car")
-    destination_queue_transform = get_destination_queue_transform(jobs, "myregex")
+    #destination_queue_transform = get_destination_queue_transform(jobs, "myregex")
     print("Extract: ",destination_queue_extract)
     print("Load: ",destination_queue_load)
     print("Transform: ", destination_queue_transform)

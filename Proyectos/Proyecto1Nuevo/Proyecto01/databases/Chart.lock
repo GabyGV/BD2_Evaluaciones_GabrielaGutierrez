@@ -5,5 +5,8 @@ dependencies:
 - name: rabbitmq
   repository: https://charts.bitnami.com/bitnami
   version: 11.0.0
-digest: sha256:c2c16f68643b875b9ba529fd4b69ab6d7dfdb1861a29f26b1385d319a7e03b72
-generated: "2022-10-15T10:08:55.2283609-06:00"
+- name: prometheus-elasticsearch-exporter
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 4.14.0
+digest: sha256:7bf1c444bd7130b5dd7f9587c86ef97e552ae41c2ce54367d6e355240ef01132
+generated: "2022-10-20T21:34:40.5296897-06:00"
