@@ -29,11 +29,7 @@ def callback(ch, method, properties, body):
     # Obtiene archivo por job_Id
     search_param = {"terms": {"job_id": [jobId]}}
     response = client.search(index="jobs", query=search_param)
-
-    # Obtiene el data_source 
-    sourceJson = response["hits"]["hits"][0]["_source"]["source"]
-    data_source = sourceJson["data_source"]
-    
+  
     # Se obtiene la expresion sql
     expression = get_value_from_transformation(_sourceJson, "expression")
 
@@ -43,7 +39,11 @@ def callback(ch, method, properties, body):
 
     # Obtiene valores para formatear la expresion sql
     field_desc = fields_mapping["field_description"]
+    table = get_value_from_transformation(_sourceJson, "table")
     field_owner = fields_mapping["field_owner"]
+
+    # Se obtiene la el source_data_source
+    source_data_source = get_value_from_transformation(_sourceJson, "source_data_source")
 
     # Recorre cada doc del group para poder ejecutar las expresiones
     for doc in docs:
@@ -52,39 +52,43 @@ def callback(ch, method, properties, body):
 
         }
 
-        formattedExpression = format_expression(expression, field_desc, field_owner, doc["id"])
-        print("Expresion formateada", formattedExpression)
+        formattedExpression = format_expression(expression, table, field_desc, field_owner, doc["id"])
+        #print("Expresion formateada", formattedExpression)
 
+        # Conexion maria db a base de datos
         conn = mariadb.connect(
             user="root",
             password="lJqsNUUPDn",
             host="localhost",
-            port=63007,
-            database=data_source,
+            port=57531,
+            database=source_data_source,
         )
 
         # Ejecuta las expresiones formateadas 
         cur = conn.cursor()
         cur.execute(formattedExpression) 
 
+        rows = cur.fetchall()
+        print(rows)
+
         # Update de 
-        client.update(routing=f"groups/{groupId}/_update",
-                index="groups", id=groupId, body=body)
+        #client.update(routing=f"groups/{groupId}/_update",
+        #        index="groups", id=groupId, body=body)
 
     # linea de codigo sacada de
     # https://stackoverflow.com/questions/5010042/mysql-get-column-name-or-alias-from-query
     # para transformar tablas de mariadb a una lista de jsons
-    res = [dict((cur.description[i][0], value)
-                for i, value in enumerate(row)) for row in cur.fetchall()]
+    #res = [dict((cur.description[i][0], value)
+    #            for i, value in enumerate(row)) for row in cur.fetchall()]
 
-    body = {"doc": {"docs": res}}
-    client.update(routing=f"groups/{groupId}/_update",
-                  index="groups", id=groupId, body=body)
+    #body = {"doc": {"docs": res}}
+    #client.update(routing=f"groups/{groupId}/_update",
+    #             index="groups", id=groupId, body=body)
 
-    print(destination)
+    #print(destination)
 
-    channel.queue_declare(queue=destination)
-    channel.basic_publish(exchange="", routing_key=destination, body=json.dumps(json_object))
+    #channel.queue_declare(queue=destination)
+    #channel.basic_publish(exchange="", routing_key=destination, body=json.dumps(json_object))
 
 # Funcion para limpiar valores
 def limpieza (dic):
@@ -104,9 +108,10 @@ def get_value_from_transformation(dic, elem_to_be_found):
                     return element[elem_to_be_found]
 
 # Funcion para formatear la expresion sql
-def format_expression(expression, field_description, field_owner, doc_id):
+def format_expression(expression, table, field_description, field_owner, doc_id):
     # Formatear expresión
     expression = expression.replace("field_description", field_description)
+    expression = expression.replace("table", table)
     expression = expression.replace("field_owner", field_owner)
     expression = expression.replace("doc_field", str(doc_id))
     return limpieza(expression)
@@ -155,15 +160,3 @@ while True:
     # Consumir mensaje 
     channel.basic_consume(queue=source_queue, on_message_callback=callback, auto_ack=True)
     channel.start_consuming()
-
-
-
-#if (jobs["stages"][0]["name"]=="extract"):
-#    source_queue = get_value_from_transformation(jobs, "source_queue")
-#    expression = get_value_from_transformation(jobs, "expression")
-#
-#    print("source queue: ", source_queue)
-#   print("expression: ", expression)
-
-
-
