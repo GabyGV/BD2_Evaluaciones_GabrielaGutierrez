@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-connector
+  labels:
+    app: app-connector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-connector
+  template:
+    metadata:
+      labels:
+        app: app-connector
+    spec:
+      containers:
+        - name: app-connector
+          image: achoy08/app-connector
+          env:
+            - name: RABBITMQ
+              value: "databases-rabbitmq"
+            - name: RABBITMQPASS
+              valueFrom:
+                secretKeyRef:
+                  name: databases-rabbitmq
+                  key: rabbitmq-password
+                  optional: false
+            - name: ELASTICPASS
+              valueFrom:
+                secretKeyRef:
+                  name: elastic-es-elastic-user
+                  key: elastic
+                  optional: false
+            - name: MARIADBENDPOINT
+              value: databases-mariadb-primary
+            - name: ELASTICENDPOINT
+              value: "elastic-es-default"
+            - name: ELASTICINDEX
+              value: "jobs"
+            - name: MARIADBPASS
+              valueFrom:
+                secretKeyRef:
+                  name: databases-mariadb
+                  key: mariadb-root-password
+                  optional: false
+            - name: MARIADBPORT
+              value: "3306"
+
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
