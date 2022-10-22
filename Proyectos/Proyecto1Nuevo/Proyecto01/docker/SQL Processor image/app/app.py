@@ -11,17 +11,19 @@ import re
 
 urllib3.disable_warnings()
 
+name = ""
+
+
 ################## FUNCIONES NECESARIAS ##################
 
 # Callback para consumir desde la cola
 def callback(ch, method, properties, body):
-    print(body)
-
     json_object = json.loads(body)
-    print(json_object)
+
+    # Obtiene group_id y job_id de la cola de rabbit
     groupId = json_object["group_id"]
     jobId = json_object["job_id"]
-    x = groupId.split("-")
+
 
     # Obtiene archivo por group_id
     _sourceJsonWithDocs = client.get(index="groups", id=groupId)
@@ -29,6 +31,7 @@ def callback(ch, method, properties, body):
     # Obtiene archivo por job_Id
     search_param = {"terms": {"job_id": [jobId]}}
     response = client.search(index="jobs", query=search_param)
+    _sourceJson = response["hits"]["hits"][0]["_source"]
   
     # Se obtiene la expresion sql
     expression = get_value_from_transformation(_sourceJson, "expression")
@@ -45,50 +48,75 @@ def callback(ch, method, properties, body):
     # Se obtiene la el source_data_source
     source_data_source = get_value_from_transformation(_sourceJson, "source_data_source")
 
+    # Se obtiene la destination_queue
+    destination_queue = get_destination_queue_transform(_sourceJson, name)
+
+    newDocs = []
+
+    # Conexion maria db a base de datos
+    try: 
+        conn = mariadb.connect(
+            user="root",
+            password=MARIADB_PASSWORD,
+            host=MARIADB_ENDPOINT,
+            port=3306,
+            database=source_data_source,
+        )
+    except mariadb.Error as e:
+            print(f"Error connecting to MariaDB Platform: {e}")
+
     # Recorre cada doc del group para poder ejecutar las expresiones
     for doc in docs:
 
-        newDocs = {
-
-        }
-
         formattedExpression = format_expression(expression, table, field_desc, field_owner, doc["id"])
         #print("Expresion formateada", formattedExpression)
-
-        # Conexion maria db a base de datos
-        conn = mariadb.connect(
-            user="root",
-            password="lJqsNUUPDn",
-            host="localhost",
-            port=57531,
-            database=source_data_source,
-        )
 
         # Ejecuta las expresiones formateadas 
         cur = conn.cursor()
         cur.execute(formattedExpression) 
 
-        rows = cur.fetchall()
-        print(rows)
+        row = cur.fetchone()
 
-        # Update de 
-        #client.update(routing=f"groups/{groupId}/_update",
-        #        index="groups", id=groupId, body=body)
+        try:
+            doc[field_desc] = row[0]
+            newDocs.append(doc)
+        except:
+            print("Se cayo")
+            print(formattedExpression)
+            break
 
-    # linea de codigo sacada de
-    # https://stackoverflow.com/questions/5010042/mysql-get-column-name-or-alias-from-query
-    # para transformar tablas de mariadb a una lista de jsons
-    #res = [dict((cur.description[i][0], value)
-    #            for i, value in enumerate(row)) for row in cur.fetchall()]
+    # Update 
+    body = {"doc": {"docs": newDocs}}
+    client.update(
+        routing=f"groups/{groupId}/_update", index="groups", id=groupId, body=body
+    )
+    # Envía mensajes a la cola de rabbit
+    channel.queue_declare(queue=destination_queue)
+    channel.basic_publish(exchange="", routing_key=destination_queue, body=json.dumps(json_object))
 
-    #body = {"doc": {"docs": res}}
-    #client.update(routing=f"groups/{groupId}/_update",
-    #             index="groups", id=groupId, body=body)
+def limpieza_destination_queue (dic):
+    dest_queue = dic
+    dest_queue = dest_queue.replace("%", "", 2)
+    dest_queue = dest_queue.replace("{", "")
+    dest_queue = dest_queue.replace("}", "")
+    return (dest_queue.split("->"))
 
-    #print(destination)
+def get_destination_queue_load(dic):
+    for elem in dic["stages"]:
+        if (elem["name"] == "load"):
+            print(elem["source_queue"])
+            return elem["source_queue"]               
 
-    #channel.queue_declare(queue=destination)
-    #channel.basic_publish(exchange="", routing_key=destination, body=json.dumps(json_object))
+def get_destination_queue_transform(dic, name):
+    for trans in dic["stages"][1]["transformation"]:
+        search_list = limpieza_destination_queue(trans["destination_queue"])
+        if (trans["name"] == name):
+            if(search_list[0] == "load"):
+                return get_destination_queue_load(dic)
+            for elem in dic["stages"][1][search_list[1]]:
+                if(elem["name"] == search_list[2]):
+                    return elem["source_queue"]
+    return 0
 
 # Funcion para limpiar valores
 def limpieza (dic):
@@ -99,12 +127,14 @@ def limpieza (dic):
 
 # Funcion para obtener valor de root.stages[name=transform].transformation[type=sql_transform].X
 def get_value_from_transformation(dic, elem_to_be_found):
+    global name
     stages = dic["stages"]
     for x in stages:
         if x["name"] == "transform":
             transformation_array = x["transformation"]
             for element in transformation_array:
                 if element["type"] == "sql_transform":
+                    name = element["name"]
                     return element[elem_to_be_found]
 
 # Funcion para formatear la expresion sql
@@ -132,8 +162,8 @@ MARIADB_PORT = os.getenv("MARIADBPORT")
 
 # Conexion con ES
 client = Elasticsearch(
-    f"https://localhost:63469",
-    http_auth=("elastic", "M6x522ObDFs6Yl5i2R878lHz"),
+    f"https://{ELASTIC_ENDPOINT}:9200",
+    http_auth=("elastic", ELASTIC_PASSWORD),
     verify_certs=False,
 )
 
@@ -151,8 +181,8 @@ while True:
     source_queue = get_value_from_transformation(_sourceJson, "source_queue")
 
     ################## Conexion con RabbitMQ ##################
-    credentials = pika.PlainCredentials("user", "KOXlRoUplntLFOQP")
-    parameters = pika.ConnectionParameters(host="localhost", port=63760, credentials=credentials) 
+    credentials = pika.PlainCredentials("user", RABBIT_MQ_PASSWORD)
+    parameters = pika.ConnectionParameters(host=RABBIT_MQ, credentials=credentials) 
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
     channel.queue_declare(queue=source_queue)
