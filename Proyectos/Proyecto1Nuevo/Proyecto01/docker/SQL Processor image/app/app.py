@@ -8,12 +8,10 @@ import time
 import pika
 import urllib3
 import re
+from prometheus_client import Counter
 
 urllib3.disable_warnings()
-
-name = ""
-
-
+c = Counter('grupos_procesados', 'Cantidad de grupos procesados')
 ################## FUNCIONES NECESARIAS ##################
 
 # Callback para consumir desde la cola
