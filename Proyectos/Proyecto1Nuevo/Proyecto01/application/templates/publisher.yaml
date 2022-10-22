@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-publisher
+  labels:
+    app: app-publisher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-publisher
+  template:
+    metadata:
+      labels:
+        app: app-publisher
+    spec:
+      containers:
+        - name: app-publisher
+          image: achoy08/app-publisher
+          env:
+            - name: RABBITMQ
+              value: "databases-rabbitmq"
+            - name: RABBITMQPASS
+              valueFrom:
+                secretKeyRef:
+                  name: databases-rabbitmq
+                  key: rabbitmq-password
+                  optional: false
+            - name: ELASTICPASS
+              valueFrom:
+                secretKeyRef:
+                  name: elastic-es-elastic-user
+                  key: elastic
+                  optional: false
+            - name: ELASTICENDPOINT
+              value: "elastic-es-default"
+            - name: ELASTICINDEX
+              value: "jobs"
+
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
