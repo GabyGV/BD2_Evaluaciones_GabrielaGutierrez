@@ -8,9 +8,10 @@ import time
 import pika
 import urllib3
 import re
+from prometheus_client import Counter
 
 urllib3.disable_warnings()
-
+c = Counter('grupos_procesados', 'Cantidad de grupos procesados')
 ################## FUNCIONES NECESARIAS ##################
 
 # Callback para consumir desde la cola
@@ -22,7 +23,7 @@ def callback(ch, method, properties, body):
     groupId = json_object["group_id"]
     jobId = json_object["job_id"]
     x = groupId.split("-")
-
+    c.inc()
     # Obtiene archivo por group_id
     _sourceJsonWithDocs = client.get(index="groups", id=groupId)
 
