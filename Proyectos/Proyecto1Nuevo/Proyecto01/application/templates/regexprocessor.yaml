@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: app-regexprocessor
-          image: gabygv11/app-regexprocessor
+          image: gabygv11/app-regexprocessor-new
           env:
             - name: RABBITMQ
               value: "databases-rabbitmq"
