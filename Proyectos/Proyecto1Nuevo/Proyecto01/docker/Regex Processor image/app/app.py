@@ -1,6 +1,4 @@
 # Librerias
-from tkinter import N
-from tokenize import group
 from elasticsearch import Elasticsearch
 import mariadb
 import math
