@@ -37,3 +37,11 @@ dependencies:
     version: "7.17.3"
     repository: https://helm.elastic.co
     condition: enableElasticData
+  - name: mariadb
+    version: "11.4.0"
+    repository: https://charts.bitnami.com/bitnami
+    condition: enableMariaDB
+  - name: rabbitmq
+    version: "11.0.0"
+    repository: https://charts.bitnami.com/bitnami
+    condition: enableRabbitmq
