@@ -1,0 +1,7 @@
+requests
+json
+datetime
+elasticsearch
+pika
+mariadb
+xmltodict
