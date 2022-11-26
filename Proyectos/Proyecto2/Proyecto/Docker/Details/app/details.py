@@ -1,6 +1,9 @@
 import requests
 import json
 from datetime import datetime
+from elasticsearch import Elasticsearch
+import mariadb
+import pika
 
 ### RECIBIR DE LA COLA
 
