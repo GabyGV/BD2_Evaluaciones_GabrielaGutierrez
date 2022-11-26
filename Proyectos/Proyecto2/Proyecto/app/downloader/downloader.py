@@ -13,12 +13,12 @@ group_id = str(1) # viene de la cola
 
 ###AGREGAR A TABLA HISTORY CON DATOS
 ##stage = "dowloader"
-# status= "in-progress"
-# created= datetime.now()
-# end: null
-# message: null
-# grp_id: group_id
-# component: identificador del pod.
+# status = "in-progress"
+# created = datetime.now()
+# end = null
+# message = null
+# grp_id = group_id
+# component = identificador del pod.
 
 
 ###Extraer docs
@@ -46,8 +46,8 @@ except:
 
 ### ACTUALIZAR TABLA HISTORY
 # status = statusW
-# end: datetime.now()
-# message: mensajeError
+# end = datetime.now()
+# message = mensajeError
 
 ### ACTUALIZAR TABLA GRUPO
 #status = "completed"

@@ -13,17 +13,18 @@ group_id = str(0) # viene de la cola
 
 ###AGREGAR A TABLA HISTORY CON DATOS
 ##stage = "details-dowloader"
-# status= "in-progress"
-# created= datetime.now()
-# end: null
-# message: null
-# grp_id: group_id
-# component: identificador del pod.
+# status = "in-progress"
+# created = datetime.now()
+# end = null
+# message = null
+# grp_id = group_id
+# component = identificador del pod.
 
 ### Obtener el grupo de elastic 
 
 
 enlaceGeneral = "https://api.biorxiv.org/details/"
+mensajeError = ""
 
 def buscarDetalles(doc):
     try:
@@ -35,10 +36,13 @@ def buscarDetalles(doc):
         page = requests.get(URL)
         details = json.loads(page.text)
         details = details["collection"]
+        details = details[0]
         print(details)
+        statusW = "completed"
         return details
     except:
         mensajeError = "Error al extraer los detalles"
+        statusW = "error"
         raise ValueError(mensajeError)
 
 ###borrar esta parte que es solo para pruebas
@@ -60,8 +64,8 @@ except:
 
 ###ACTUALIZAR TABLA HISTORY
 #status= statusW
-# end: datetime.now()
-#message: mensajeError
+# end = datetime.now()
+#message = mensajeError
 
 ### ACTUALIZAR TABLA GRUPO
 #status = "completed"
