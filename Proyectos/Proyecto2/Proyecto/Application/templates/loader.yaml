@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-loader
+  labels:
+    app: app-loader
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-loader
+  template:
+    metadata:
+      labels:
+        app: app-loader
+    spec:
+      containers:
+        - name: app-loader
+          image: achoy08/app-loader
+          env:
+            - name: HOSTNAME
+              value: "app-loader"
+            - name: API_URL
+              value: "https://api.biorxiv.org/covid19/0"
+            - name: RABBITMQ
+              value: "databases-rabbitmq"
+            - name: OUT_QUEUE
+              value: "downloader"
+            - name: IN_QUEUE
+              value: "loader"
+            - name: RABBIT_USER
+              value: "user"
+            - name: RABBITMQPASS
+              valueFrom:
+                secretKeyRef:
+                  name: databases-rabbitmq
+                  key: rabbitmq-password
+                  optional: false
+            - name: MARIADBENDPOINT
+              value: databases-mariadb-primary
+            - name: MARIADBPASS
+              valueFrom:
+                secretKeyRef:
+                  name: databases-mariadb
+                  key: mariadb-root-password
+                  optional: false
+            - name: MARIADBPORT
+              value: "3306"
+            - name: MARIADB_USER
+              value: "root"
+            - name: MARIADB_DB
+              value: "workload"
+
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
