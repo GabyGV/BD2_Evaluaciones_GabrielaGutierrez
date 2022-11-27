@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-demo04
+  labels:
+    app: api-demo04
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-demo04
+  template:
+    metadata:
+      labels:
+        app: api-demo04
+    spec:
+      containers:
+        - name: api-demo04
+          image: brayanmq/api-demo04
+          env:
+            - name: ELASTICPASS
+              valueFrom:
+                secretKeyRef:
+                  name: elastic-es-elastic-user
+                  key: elastic
+                  optional: false
+            - name: MARIADBENDPOINT
+              value: databases-mariadb-primary
+            - name: ELASTICENDPOINT
+              value: "elastic-es-default"
+            - name: ELASTICINDEX
+              value: "jobs"
+            - name: MARIADB_USER
+              value: "root"
+            - name: MARIADBPASS
+              valueFrom:
+                secretKeyRef:
+                  name: databases-mariadb
+                  key: mariadb-root-password
+                  optional: false
+            - name: MARIADBPORT
+              value: "3306"
+            - name: MARIADB_DB
+              value: "workload"
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+          - containerPort: 5000

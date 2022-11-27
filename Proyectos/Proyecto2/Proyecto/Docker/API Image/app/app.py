@@ -1,21 +1,14 @@
 # Librerias
 from flask import Flask
-
 import json
-
 import mariadb
-import math
 import os
-import pika
 import urllib3
 
 urllib3.disable_warnings()
 
 
 # Variables de entorno
-#USUARIO Y PASSWORD DE RABBITMQ
-RABBIT_MQ = os.getenv("RABBITMQ")
-RABBIT_MQ_PASSWORD = os.getenv("RABBITMQPASS")
 
 #USUARIO, PASSWORD E INDICE DE ELASTICSEARCH
 ELASTIC_PASSWORD = os.getenv("ELASTICPASS")
@@ -23,9 +16,11 @@ ELASTIC_ENDPOINT = os.getenv("ELASTICENDPOINT")
 ELASTIC_INDEX = os.getenv("ELASTICINDEX")
 
 #USUARIO, PASSWORD Y PUERTO DE MARIADB
+MARIADB_USER = os.getenv("MARIADB_USER")
 MARIADB_ENDPOINT = os.getenv("MARIADBENDPOINT")
 MARIADB_PASSWORD = os.getenv("MARIADBPASS")
 MARIADB_PORT = os.getenv("MARIADBPORT")
+database = os.getenv("MARIADB_DB")
 
 # Inicializa el API
 app = Flask(__name__)
@@ -35,10 +30,10 @@ def getMessage():
 
     try:
         conn = mariadb.connect(
-            user="root",
-            password="lJqsNUUPDn",
-            host="localhost",
-            port=57531,
+            user=MARIADB_USER,
+            password=MARIADB_PASSWORD,
+            host=MARIADB_ENDPOINT,
+            port=int(MARIADB_PORT),
             database="car_db",
         )
 
@@ -52,27 +47,31 @@ def getMessage():
         json_data=[]
         for result in rv:
                 json_data.append(dict(zip(row_headers,result)))
+
+        conn.close()
+
         return json.dumps(json_data)
 
     except mariadb.Error as e:
         print(f"Error connecting to MariaDB Platform: {e}")
         return (f"Error connecting to MariaDB Platform: {e}")
 
-@app.route('/app/setData/<name>', methods=["POST"])
+@app.route('/app/insertJob/<name>', methods=["POST"])
 def setMessage(name):
 
     try:
         conn = mariadb.connect(
-            user="root",
-            password="lJqsNUUPDn",
-            host="localhost",
-            port=57531,
+            user=MARIADB_USER,
+            password=MARIADB_PASSWORD,
+            host=MARIADB_ENDPOINT,
+            port=int(MARIADB_PORT),
             database="people_db",
         )
 
         cur = conn.cursor()
-        cur.execute(f"INSERT INTO persona (cedula, nombre) VALUES (?, ?)", (407, name))
+        cur.execute(f"INSERT INTO persona (cedula, nombre) VALUES (?, ?)", (425, name))
         conn.commit()
+        conn.close()
 
         return name
 
@@ -81,6 +80,7 @@ def setMessage(name):
         return (f"Error connecting to MariaDB Platform: {e}")
 
 # Corre el API
-app.run(debug=True)
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=5000)
 
-##http://127.0.0.1:5000/app/getMessage
+##http://127.0.0.1:5000/app/getData
