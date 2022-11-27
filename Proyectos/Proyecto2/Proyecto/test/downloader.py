@@ -17,7 +17,7 @@ RABBIT_USER = os.getenv("RABBIT_USER")
 RABBITMQPASS = os.getenv("RABBITMQPASS")
 RABBITMQ = os.getenv("RABBITMQ")
 IN_QUEUE = os.getenv("IN_QUEUE")
-OUT_QUEUE = os.getenv("IN_QUEUE")
+OUT_QUEUE = os.getenv("OUT_QUEUE")
 
 # MARIADB
 MARIADB_ENDPOINT = os.getenv("MARIADBENDPOINT")
@@ -41,7 +41,6 @@ urllib3.disable_warnings()
 def callback(ch, method, properties, body):
     global grp_size
     global globalArray
-    print(body)
 
     print("entro un msj")
     json_object = json.loads(body)
@@ -49,11 +48,11 @@ def callback(ch, method, properties, body):
     idJob = json_object["id_job"]
 
     conn = mariadb.connect(
-        user="root",
-        password="f1a9qqwhIJ",
-        host="localhost",
-        port=55957,
-        database="workload",
+        user=MARIADB_USER,
+        password=MARIADB_PASSWORD,
+        host=MARIADB_ENDPOINT,
+        port=3306,
+        database=MARIADB_DB,
     )
     cur = conn.cursor()
 
@@ -62,7 +61,6 @@ def callback(ch, method, properties, body):
             f"SELECT grp_size FROM jobs WHERE id = {idJob}")
 
         total = cur.fetchone()
-        print(total)
         for x in total:
             return x
         return None
@@ -92,8 +90,8 @@ def callback(ch, method, properties, body):
     def insertHistory():
         cur.execute(
             f"""
-            INSERT INTO history (created_time,stage,_status,grp_id,component) 
-            VALUES ( 
+            INSERT INTO history (created_time,stage,_status,grp_id,component)
+            VALUES (
                     NOW(),
                     "dowloader",
                     "inprogress",
@@ -103,31 +101,34 @@ def callback(ch, method, properties, body):
         conn.commit()
         return
 
-    def updateError():
+    def updateError():#falta
         cur.execute(
             f"""
-            INSERT INTO history (created_time,stage,_status,grp_id,component) 
-            VALUES ( 
-                    NOW(),
-                    dowloader",
-                    "inprogress",
-                    {groupId},
-                    HOSTNAME
-                    )""")
+            UPDATE history 
+            SET _status = 'error',
+                end_time = NOW(),
+                message = '{mensajeError}'
+            WHERE grp_id = {grpNumber}
+            """)
         conn.commit()
         return
 
     def updateComplete():
         cur.execute(
             f"""
-            INSERT INTO history (created_time,stage,_status,grp_id,component) 
-            VALUES ( 
-                    NOW(),
-                    dowloader",
-                    "inprogress",
-                    {groupId[0]},
-                    HOSTNAME
-                    )""")
+            UPDATE groups 
+            SET _status = 'completed'
+            WHERE grp_number = {grpNumber}
+            """)
+        conn.commit()
+
+        cur.execute(
+            f"""
+            UPDATE history 
+            SET _status = 'completed',
+                end_time = NOW()
+            WHERE grp_id = {grpNumber}
+            """)
         conn.commit()
         return
 
@@ -145,7 +146,6 @@ def callback(ch, method, properties, body):
 
         docs = json.loads(page.text)
         docs = docs['collection']
-        print("llego a procesar los docs")
         for doc in docs:  # cada doc del grupo
             title = doc["rel_title"]
             date = doc["rel_date"]
@@ -163,8 +163,6 @@ def callback(ch, method, properties, body):
             jsonDoc["abstract"] = rel_abs
             jsonDoc['rel_doi'] = rel_doi
             jsonDoc['rel_site'] = rel_site
-            print(len(globalArray))
-            print(grp_size)
             if len(globalArray) < grp_size:
 
                 globalArray.append(jsonDoc)
@@ -183,32 +181,19 @@ def callback(ch, method, properties, body):
         mensajeError = "Error al extraer de la página"
         statusW = "error"
 
-    # if statusW != "error":
+    if statusW != "error":
+        updateComplete()
+    else:
+        updateError()
 
-    # else:
-      #  updateError(grpNumber)##########################################################falta
-
-    channel.queue_declare(queue='detail')
+    channel.queue_declare(queue=OUT_QUEUE)
     channel.basic_publish(
-        exchange="", routing_key="detail", body=json.dumps(json_object)
+        exchange="", routing_key=OUT_QUEUE, body=json.dumps(json_object)
     )
-
-# AGREGAR A ELASTIC
-
-# ACTUALIZAR TABLA HISTORY
-# status = statusW
-# end = datetime.now()
-# message = mensajeError
-
-# ACTUALIZAR TABLA GRUPO
-#status = "completed"
-
-# agregar el mensaje en la cola
-
 
 while True:
     client = Elasticsearch(
-        f"http://localhost:61707/"
+        f"http://{ELASTIC_ENDPOINT}:9200/"
     )
 
     if client.indices.exists(index="groups") != True:
@@ -217,14 +202,13 @@ while True:
     else:
         print("Si existe /groups")
 
-    credentials = pika.PlainCredentials("user", "ekhVwr5eTRQRnsTN")
+    credentials = pika.PlainCredentials(RABBIT_USER, RABBITMQPASS)
     parameters = pika.ConnectionParameters(
-        host="localhost", credentials=credentials, port=55876)
+        host=RABBITMQ, credentials=credentials)
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
-    channel.queue_declare(queue="downloader")
-    channel.basic_consume(queue="downloader",
-                          on_message_callback=callback, auto_ack=True)
+    channel.queue_declare(queue=IN_QUEUE)
+    channel.basic_consume(queue=IN_QUEUE,on_message_callback=callback, auto_ack=True)
     channel.start_consuming()
 
     print("No hay documentos")
