@@ -1,11 +1,9 @@
 import mariadb
 import urllib3
 import pika
-import math
 import os
 import requests
 import json
-from datetime import datetime
 import time
 from elasticsearch import Elasticsearch
 
