@@ -8,7 +8,7 @@ from elasticsearch import Elasticsearch
 
 
 client = Elasticsearch(
-    f"http://localhost:61707/"
+    f"http://localhost:53599/"
 )
 
 

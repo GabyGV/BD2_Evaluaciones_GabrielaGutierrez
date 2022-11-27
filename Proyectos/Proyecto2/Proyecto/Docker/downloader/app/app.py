@@ -76,16 +76,16 @@ def callback(ch, method, properties, body):
 
         return
 
-    def searchGroupId(id):
+    def searchGroupId():
         cur.execute(
-            f"SELECT id FROM groups WHERE grp_number = {id}")
+            f"SELECT id FROM groups WHERE grp_number = {grpNumber}")
 
         total = cur.fetchone()
         for id in total:
             return id
         return None
 
-    groupId = searchGroupId(idJob)
+    groupId = searchGroupId()
 
     def insertHistory():
         cur.execute(
