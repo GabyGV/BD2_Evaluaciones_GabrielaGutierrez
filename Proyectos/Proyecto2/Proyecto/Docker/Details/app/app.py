@@ -48,26 +48,23 @@ def callback(ch, method, properties, body):
         user="root",
         password="f1a9qqwhIJ",
         host="localhost",
-        port=50073,
+        port=49270,
         database="workload",
     )
     cur = conn.cursor()
 
     client = Elasticsearch(
-        f"http://localhost:63010/"
+        f"http://localhost:58265/"
     )
     searchParam = {"terms": {"group_id": [grpNumber]}}
     response = client.search(index="groups", query=searchParam)
     _sourceJson = response["hits"]["hits"][0]["_source"]
 
     def modifyJobs(id):
-        try:
-            cur.execute(
-                f"UPDATE groups SET _status = 'inprogress', stage = 'details-downloader'  WHERE grp_number = {id}")
-            conn.commit()
 
-        except mariadb.Error as e:
-            print(f"Error MariaDB: {e}")
+        cur.execute(
+            f"UPDATE groups SET _status = 'inprogress', stage = 'details-downloader'  WHERE grp_number = {id}")
+        conn.commit()
 
         return
 
@@ -80,7 +77,7 @@ def callback(ch, method, properties, body):
                     "details-downloader",
                     "inprogress",
                     {grpNumber},
-                    '{HOSTNAME}'
+                    'null'
                     )""")
         conn.commit()
         return
@@ -121,57 +118,53 @@ def callback(ch, method, properties, body):
 
     # regresar doc de elastic
 
-    try:
 
-        docs = _sourceJson["doc"]["docs"]
-        newDocs = []
-        for doc in docs:  # cada doc del grupo
+    docs = _sourceJson["doc"]["docs"]
+    newDocs = []
+    for doc in docs:  # cada doc del grupo
+        rel_doi = doc["rel_doi"]
+        rel_site = (doc["rel_site"]).lower()
+        enlaceCompleto = (enlaceGeneral + rel_site + "/" + rel_doi)
+        URL = (enlaceCompleto)
 
-            rel_doi = doc["rel_doi"]
-            rel_site = (doc["rel_site"]).lower()
-            if rel_site == "medRxiv":
+        page = requests.get(URL)
+        details = json.loads(page.text)
+        details = details["collection"]
+        print(details)
 
-                enlaceCompleto = (enlaceGeneral + rel_site + "/" + rel_doi)
-                URL = (enlaceCompleto)
+        print("llego a procesar los details")
 
-                page = requests.get(URL)
-                details = json.loads(page.text)
-                details = details["collection"]
-                print(details)
+        doc["details"] = details
 
-                print("llego a procesar los details")
+    
 
-                doc["details"] = details
+        newDocs.append(doc)
 
-                newDocs.append(doc)
-            else:
-                newDocs.append(doc)
+    body = {"doc": {"docs": newDocs}}
 
-        body = {"doc": {"docs": newDocs}}
+    client.update(
+        routing=f"groups/{grpNumber}/_update", index="groups", id=grpNumber, body=body)
 
-        client.update(
-            routing=f"groups/{grpNumber}/_update", index="groups", id=grpNumber, body=body)
+    if statusW != "error":
+        updateComplete()
+    else:
+        updateError()
 
-        if statusW != "error":
-            updateComplete()
-        else:
-            updateError()
+    channel.queue_declare(queue='jastxm')
+    channel.basic_publish(
+        exchange="", routing_key="jastxm", body=json.dumps(json_object)
+    )
+    statusW = "completed"
 
-        channel.queue_declare(queue='jastxm')
-        channel.basic_publish(
-            exchange="", routing_key="jastxm", body=json.dumps(json_object)
-        )
-        statusW = "completed"
-    except:
-        mensajeError = "Error al extraer de la página"
-        statusW = "error"
+    mensajeError = "Error al extraer de la página"
+    statusW = "error"
 
 
 while True:
 
-    credentials = pika.PlainCredentials("user", "KE7gEn7ijo8HFrgW")
+    credentials = pika.PlainCredentials("user", "VIPDiC07VqebkEBP")
     parameters = pika.ConnectionParameters(
-        host="localhost", credentials=credentials, port=62919)
+        host="localhost", credentials=credentials, port=58169)
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
     channel.queue_declare(queue="detail_downloader")
@@ -181,3 +174,10 @@ while True:
 
     print("No hay documentos")
     time.sleep(3)
+
+
+
+
+
+
+
