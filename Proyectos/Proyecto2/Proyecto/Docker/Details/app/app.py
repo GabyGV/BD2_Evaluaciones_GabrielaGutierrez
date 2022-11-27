@@ -1,17 +1,21 @@
-import mariadb
-import urllib3
-import pika
-import math
-import os
 import requests
 import json
-from datetime import datetime
-import time
 from elasticsearch import Elasticsearch
+import mariadb
+import pika
+import os
+import urllib3
+import time
+
 
 globalArray = []
 grp_size = 0
+job_id = str(0)
+group_id = str(0) # viene de la cola
+enlaceGeneral = "https://api.biorxiv.org/details/"
+mensajeError = ""
 
+### CONEXIONES
 # RabbitMQ
 RABBIT_USER = os.getenv("RABBIT_USER")
 RABBITMQPASS = os.getenv("RABBITMQPASS")
@@ -37,6 +41,11 @@ HOSTNAME = os.getenv("HOSTNAME")
 
 urllib3.disable_warnings()
 
+
+# http://localhost:53644/   pass:f1a9qqwhIJ
+
+
+### RECIBIR DE LA COLA
 
 def callback(ch, method, properties, body):
     global grp_size
@@ -70,7 +79,7 @@ def callback(ch, method, properties, body):
     def modifyJobs(id):
         try:
             cur.execute(
-                f"UPDATE groups SET _status = 'inprogress', stage = 'downloader'  WHERE grp_number = {id}")
+                f"UPDATE groups SET _status = 'inprogress', stage = 'detailsDownloader'  WHERE grp_number = {id}")
             conn.commit()
 
         except mariadb.Error as e:
@@ -95,7 +104,7 @@ def callback(ch, method, properties, body):
             INSERT INTO history (created_time,stage,_status,grp_id,component) 
             VALUES ( 
                     NOW(),
-                    "dowloader",
+                    "detailsDowloader",
                     "inprogress",
                     {groupId},
                     '{HOSTNAME}'
@@ -109,7 +118,7 @@ def callback(ch, method, properties, body):
             INSERT INTO history (created_time,stage,_status,grp_id,component) 
             VALUES ( 
                     NOW(),
-                    "dowloader",
+                    "detailsDowloader",
                     "inprogress",
                     {groupId},
                     HOSTNAME
@@ -123,8 +132,8 @@ def callback(ch, method, properties, body):
             INSERT INTO history (created_time,stage,_status,grp_id,component) 
             VALUES ( 
                     NOW(),
-                    dowloader",
-                    "inprogress",
+                    "detailsDowloader",
+                    "completed",
                     {groupId[0]},
                     HOSTNAME
                     )""")
@@ -140,31 +149,40 @@ def callback(ch, method, properties, body):
         groupSize = searchJobData(idJob)
         grp_size = groupSize
     try:
-        URL = ("https://api.biorxiv.org/covid19/" + grpNumber)
-        page = requests.get(URL)
+        ###regresar doc de elastic
+        docs = {""}
 
-        docs = json.loads(page.text)
-        docs = docs['collection']
-        print("llego a procesar los docs")
         for doc in docs:  # cada doc del grupo
-            title = doc["rel_title"]
-            date = doc["rel_date"]
-            rel_authors = doc["rel_authors"]
-            category = doc["category"]
-            rel_abs = doc["rel_abs"]
             rel_doi = doc["rel_doi"]
-            rel_site = doc["rel_site"]
+            rel_site = (doc["rel_site"]).lower()
+            enlaceCompleto = (enlaceGeneral + rel_site + "/" + rel_doi)
+            URL = (enlaceCompleto)
+
+            page = requests.get(URL)
+            details = json.loads(page.text)
+            details = details["collection"]
+            details = details[0]
+            print(details)
+ 
+            print("llego a procesar los details")
+
+            title = doc["title"]
+            rel_authors = doc["authors"]
+            category = doc["category"]
+            rel_abs = doc["abstract"]
+            rel_doi = doc["doi"]
+            jatsxml = doc["jatsxml"]
 
             jsonDoc = {}
             jsonDoc["title"] = title
-            jsonDoc["date"] = date
             jsonDoc["athors"] = rel_authors
             jsonDoc["category"] = category
             jsonDoc["abstract"] = rel_abs
-            jsonDoc['rel_doi'] = rel_doi
-            jsonDoc['rel_site'] = rel_site
+            jsonDoc["doi"] = rel_doi
+            jsonDoc["jatsxml"] = jatsxml
             print(len(globalArray))
             print(grp_size)
+
             if len(globalArray) < grp_size:
 
                 globalArray.append(jsonDoc)
@@ -193,17 +211,6 @@ def callback(ch, method, properties, body):
         exchange="", routing_key="detail", body=json.dumps(json_object)
     )
 
-# AGREGAR A ELASTIC
-
-# ACTUALIZAR TABLA HISTORY
-# status = statusW
-# end = datetime.now()
-# message = mensajeError
-
-# ACTUALIZAR TABLA GRUPO
-#status = "completed"
-
-# agregar el mensaje en la cola
 
 
 while True:
