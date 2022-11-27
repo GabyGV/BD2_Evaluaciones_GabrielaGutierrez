@@ -6,16 +6,9 @@ import pika
 import os
 import urllib3
 import time
-
-
-globalArray = []
-grp_size = 0
-job_id = str(0)
-group_id = str(0) # viene de la cola
 enlaceGeneral = "https://api.biorxiv.org/details/"
-mensajeError = ""
 
-### CONEXIONES
+# CONEXIONES
 # RabbitMQ
 RABBIT_USER = os.getenv("RABBIT_USER")
 RABBITMQPASS = os.getenv("RABBITMQPASS")
@@ -44,22 +37,8 @@ urllib3.disable_warnings()
 
 # http://localhost:53644/   pass:f1a9qqwhIJ
 
-### Borrar esto, es para pruebas
-def getDocs():
-    URL = ("https://api.biorxiv.org/covid19/0")
-    page = requests.get(URL)
-
-    docs = json.loads(page.text)
-    docs = docs['collection']
-    return docs
-
-### RECIBIR DE LA COLA
 
 def callback(ch, method, properties, body):
-    global grp_size
-    global globalArray
-    print(body)
-
     print("entro un msj")
     json_object = json.loads(body)
     grpNumber = json_object["grp_number"]
@@ -74,20 +53,17 @@ def callback(ch, method, properties, body):
     )
     cur = conn.cursor()
 
-    def searchJobData(idJob):
-        cur.execute(
-            f"SELECT grp_size FROM jobs WHERE id = {idJob}")
-
-        total = cur.fetchone()
-        print(total)
-        for x in total:
-            return x
-        return None
+    client = Elasticsearch(
+        f"http://localhost:61707/"
+    )
+    searchParam = {"terms": {"group_id": grpNumber}}
+    response = client.search(index="groups", query=searchParam)
+    _sourceJson = response["hits"]["hits"][0]["_source"]
 
     def modifyJobs(id):
         try:
             cur.execute(
-                f"UPDATE groups SET _status = 'inprogress', stage = 'detailsDownloader'  WHERE grp_number = {id}")
+                f"UPDATE groups SET _status = 'inprogress', stage = 'details-downloader'  WHERE grp_number = {id}")
             conn.commit()
 
         except mariadb.Error as e:
@@ -95,71 +71,59 @@ def callback(ch, method, properties, body):
 
         return
 
-    def searchGroupId(id):
-        cur.execute(
-            f"SELECT id FROM groups WHERE grp_number = {id}")
-
-        total = cur.fetchone()
-        for id in total:
-            return id
-        return None
-
-    groupId = searchGroupId(idJob)
-
     def insertHistory():
         cur.execute(
             f"""
-            INSERT INTO history (created_time,stage,_status,grp_id,component) 
-            VALUES ( 
+            INSERT INTO history (created_time,stage,_status,grp_id,component)
+            VALUES (
                     NOW(),
-                    "detailsDowloader",
+                    "details-downloader",
                     "inprogress",
-                    {groupId},
+                    {grpNumber},
                     '{HOSTNAME}'
                     )""")
         conn.commit()
         return
-
-    def updateError():
+    def updateError():#falta
         cur.execute(
             f"""
-            INSERT INTO history (created_time,stage,_status,grp_id,component) 
-            VALUES ( 
-                    NOW(),
-                    "detailsDowloader",
-                    "inprogress",
-                    {groupId},
-                    HOSTNAME
-                    )""")
+            UPDATE history 
+            SET _status = 'error',
+                end_time = NOW(),
+                message = '{mensajeError}'
+            WHERE grp_id = {grpNumber}
+            """)
         conn.commit()
         return
 
     def updateComplete():
         cur.execute(
             f"""
-            INSERT INTO history (created_time,stage,_status,grp_id,component) 
-            VALUES ( 
-                    NOW(),
-                    "detailsDowloader",
-                    "completed",
-                    {groupId[0]},
-                    HOSTNAME
-                    )""")
+            UPDATE groups 
+            SET _status = 'completed'
+            WHERE grp_number = {grpNumber}
+            """)
         conn.commit()
-        return
 
-    def agregarDocElastic():
+        cur.execute(
+            f"""
+            UPDATE history 
+            SET _status = 'completed',
+                end_time = NOW()
+            WHERE grp_id = {grpNumber}
+            """)
+        conn.commit()
         return
 
     modifyJobs(grpNumber)
     insertHistory()
-    if grp_size == 0:
-        groupSize = searchJobData(idJob)
-        grp_size = groupSize
-    try:
-        ###regresar doc de elastic
-        docs = getDocs()
 
+    # regresar doc de elastic
+
+    try:
+
+        docs = _sourceJson["doc"]["docs"]
+        newDocs = []
         for doc in docs:  # cada doc del grupo
             rel_doi = doc["rel_doi"]
             rel_site = (doc["rel_site"]).lower()
@@ -169,80 +133,53 @@ def callback(ch, method, properties, body):
             page = requests.get(URL)
             details = json.loads(page.text)
             details = details["collection"]
-            details = details[0]
             print(details)
- 
+
             print("llego a procesar los details")
 
-            title = doc["title"]
-            rel_authors = doc["authors"]
-            category = doc["category"]
-            rel_abs = doc["abstract"]
-            rel_doi = doc["doi"]
-            jatsxml = doc["jatsxml"]
+            doc["details"] = details
 
-            jsonDoc = {}
-            jsonDoc["title"] = title
-            jsonDoc["athors"] = rel_authors
-            jsonDoc["category"] = category
-            jsonDoc["abstract"] = rel_abs
-            jsonDoc["doi"] = rel_doi
-            jsonDoc["jatsxml"] = jatsxml
-            print(len(globalArray))
-            print(grp_size)
+            newDocs.append(doc)
 
-            if len(globalArray) < grp_size:
+        body = {"doc": {"docs": newDocs}}
 
-                globalArray.append(jsonDoc)
-            else:
-                newGroup = {
-                    "job_id": f"{idJob}",
-                    "group_id": f"{groupId}",
-                    "doc": {"docs": globalArray}}
-                globalArray = []
-                client.index(
-                    routing=f"jobs/_create/{groupId}", id=groupId, index="groups", document=newGroup)
-                globalArray.append(jsonDoc)
+        client.update(
+            routing=f"groups/{grpNumber}/_update", index="groups", id=grpNumber, body=body)
 
+        if statusW != "error":
+            updateComplete()
+        else:
+            updateError()
+
+
+        channel.queue_declare(queue='jastxm')
+        channel.basic_publish(
+            exchange="", routing_key="jastxm", body=json.dumps(json_object)
+        )
         statusW = "completed"
     except:
         mensajeError = "Error al extraer de la página"
         statusW = "error"
 
-    # if statusW != "error":
 
-    # else:
-      #  updateError(grpNumber)##########################################################falta
 
-    channel.queue_declare(queue='detail')
-    channel.basic_publish(
-        exchange="", routing_key="detail", body=json.dumps(json_object)
-    )
+
+
+
 
 
 
 while True:
-    client = Elasticsearch(
-        f"http://localhost:61707/"
-    )
-
-    if client.indices.exists(index="groups") != True:
-        client.indices.create(index="groups")
-        print("No existe /groups")
-    else:
-        print("Si existe /groups")
 
     credentials = pika.PlainCredentials("user", "ekhVwr5eTRQRnsTN")
     parameters = pika.ConnectionParameters(
         host="localhost", credentials=credentials, port=55876)
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
-    channel.queue_declare(queue="downloader")
-    channel.basic_consume(queue="downloader",
+    channel.queue_declare(queue="detail_downloader")
+    channel.basic_consume(queue="detail_downloader",
                           on_message_callback=callback, auto_ack=True)
     channel.start_consuming()
 
     print("No hay documentos")
     time.sleep(3)
-
-

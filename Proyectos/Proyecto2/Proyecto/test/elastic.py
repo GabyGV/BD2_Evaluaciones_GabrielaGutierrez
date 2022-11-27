@@ -11,8 +11,10 @@ client = Elasticsearch(
     f"http://localhost:53599/"
 )
 
+searchParam = {"terms": {"group_id": [2]}}
+response = client.search(index="groups", query=searchParam)
+_sourceJson = response["hits"]["hits"][0]["_source"]["doc"]["docs"]
 
-resp = client.search(index="groups", query={"match_all": {}})
 
 
-print(resp)
+print(_sourceJson)
