@@ -44,6 +44,14 @@ urllib3.disable_warnings()
 
 # http://localhost:53644/   pass:f1a9qqwhIJ
 
+### Borrar esto, es para pruebas
+def getDocs():
+    URL = ("https://api.biorxiv.org/covid19/0")
+    page = requests.get(URL)
+
+    docs = json.loads(page.text)
+    docs = docs['collection']
+    return docs
 
 ### RECIBIR DE LA COLA
 
@@ -150,7 +158,7 @@ def callback(ch, method, properties, body):
         grp_size = groupSize
     try:
         ###regresar doc de elastic
-        docs = {""}
+        docs = getDocs()
 
         for doc in docs:  # cada doc del grupo
             rel_doi = doc["rel_doi"]
@@ -236,3 +244,5 @@ while True:
 
     print("No hay documentos")
     time.sleep(3)
+
+
