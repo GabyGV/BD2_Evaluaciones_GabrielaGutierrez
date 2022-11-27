@@ -1,4 +1,8 @@
-requests
-elasticsearch
-pika
 mariadb
+urllib3
+pika
+os
+requests
+json
+time
+Elasticsearch
