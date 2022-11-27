@@ -5,6 +5,7 @@ from elasticsearch import Elasticsearch
 import mariadb
 import pika
 
+
 ### RECIBIR DE LA COLA
 
 job_id = str(1)
