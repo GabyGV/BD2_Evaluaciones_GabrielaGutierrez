@@ -1,8 +1,4 @@
 requests
-json
-time
 elasticsearch
 pika
 mariadb
-os
-urllib3

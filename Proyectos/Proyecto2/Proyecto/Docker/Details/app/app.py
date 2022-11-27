@@ -45,16 +45,16 @@ def callback(ch, method, properties, body):
     idJob = json_object["id_job"]
 
     conn = mariadb.connect(
-        user="root",
-        password="f1a9qqwhIJ",
-        host="localhost",
-        port=49270,
-        database="workload",
+        user=MARIADB_USER,
+        password=MARIADB_PASSWORD,
+        host=MARIADB_ENDPOINT,
+        port=MARIADBPORT,
+        database=MARIADB_DB,
     )
     cur = conn.cursor()
 
     client = Elasticsearch(
-        f"http://localhost:58265/"
+        f"http://{ELASTIC_ENDPOINT}:9200/"
     )
     searchParam = {"terms": {"group_id": [grpNumber]}}
     response = client.search(index="groups", query=searchParam)
@@ -162,13 +162,13 @@ def callback(ch, method, properties, body):
 
 while True:
 
-    credentials = pika.PlainCredentials("user", "VIPDiC07VqebkEBP")
+    credentials = pika.PlainCredentials(RABBIT_USER, RABBITMQPASS)
     parameters = pika.ConnectionParameters(
-        host="localhost", credentials=credentials, port=58169)
+        host=RABBITMQ, credentials=credentials)
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
-    channel.queue_declare(queue="detail_downloader")
-    channel.basic_consume(queue="detail_downloader",
+    channel.queue_declare(queue=IN_QUEUE)
+    channel.basic_consume(queue=IN_QUEUE,
                           on_message_callback=callback, auto_ack=True)
     channel.start_consuming()
 
