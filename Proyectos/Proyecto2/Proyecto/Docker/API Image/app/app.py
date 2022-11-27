@@ -70,7 +70,7 @@ def insertJob():
         )
 
         cur = conn.cursor()
-        cur.execute(f"INSERT INTO jobs(created_time,_status,end_time,loader,grp_size) VALUES (NOW(), 'new', NULL, NULL, 100)")
+        cur.execute(f"INSERT INTO jobs(created_time,_status,end_time,loader,grp_size) VALUES (NOW(), 'new', NULL, NULL, 30)")
         conn.commit()
         conn.close()
 
