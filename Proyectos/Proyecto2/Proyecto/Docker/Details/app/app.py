@@ -48,15 +48,15 @@ def callback(ch, method, properties, body):
         user="root",
         password="f1a9qqwhIJ",
         host="localhost",
-        port=55957,
+        port=50073,
         database="workload",
     )
     cur = conn.cursor()
 
     client = Elasticsearch(
-        f"http://localhost:61707/"
+        f"http://localhost:63010/"
     )
-    searchParam = {"terms": {"group_id": grpNumber}}
+    searchParam = {"terms": {"group_id": [grpNumber]}}
     response = client.search(index="groups", query=searchParam)
     _sourceJson = response["hits"]["hits"][0]["_source"]
 
@@ -84,7 +84,8 @@ def callback(ch, method, properties, body):
                     )""")
         conn.commit()
         return
-    def updateError():#falta
+
+    def updateError():  # falta
         cur.execute(
             f"""
             UPDATE history 
@@ -125,21 +126,26 @@ def callback(ch, method, properties, body):
         docs = _sourceJson["doc"]["docs"]
         newDocs = []
         for doc in docs:  # cada doc del grupo
+
             rel_doi = doc["rel_doi"]
             rel_site = (doc["rel_site"]).lower()
-            enlaceCompleto = (enlaceGeneral + rel_site + "/" + rel_doi)
-            URL = (enlaceCompleto)
+            if rel_site == "medRxiv":
 
-            page = requests.get(URL)
-            details = json.loads(page.text)
-            details = details["collection"]
-            print(details)
+                enlaceCompleto = (enlaceGeneral + rel_site + "/" + rel_doi)
+                URL = (enlaceCompleto)
 
-            print("llego a procesar los details")
+                page = requests.get(URL)
+                details = json.loads(page.text)
+                details = details["collection"]
+                print(details)
 
-            doc["details"] = details
+                print("llego a procesar los details")
 
-            newDocs.append(doc)
+                doc["details"] = details
+
+                newDocs.append(doc)
+            else:
+                newDocs.append(doc)
 
         body = {"doc": {"docs": newDocs}}
 
@@ -151,7 +157,6 @@ def callback(ch, method, properties, body):
         else:
             updateError()
 
-
         channel.queue_declare(queue='jastxm')
         channel.basic_publish(
             exchange="", routing_key="jastxm", body=json.dumps(json_object)
@@ -162,18 +167,11 @@ def callback(ch, method, properties, body):
         statusW = "error"
 
 
-
-
-
-
-
-
-
 while True:
 
-    credentials = pika.PlainCredentials("user", "ekhVwr5eTRQRnsTN")
+    credentials = pika.PlainCredentials("user", "KE7gEn7ijo8HFrgW")
     parameters = pika.ConnectionParameters(
-        host="localhost", credentials=credentials, port=55876)
+        host="localhost", credentials=credentials, port=62919)
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
     channel.queue_declare(queue="detail_downloader")
