@@ -1,33 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-demo04
+  name: api
   labels:
-    app: api-demo04
+    app: api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: api-demo04
+      app: api
   template:
     metadata:
       labels:
-        app: api-demo04
+        app: api
     spec:
       containers:
-        - name: api-demo04
-          image: brayanmq/api-demo04
+        - name: api
+          image: brayanmq/api
           env:
-            - name: ELASTICPASS
-              valueFrom:
-                secretKeyRef:
-                  name: elastic-es-elastic-user
-                  key: elastic
-                  optional: false
             - name: MARIADBENDPOINT
               value: databases-mariadb-primary
-            - name: ELASTICENDPOINT
-              value: "elastic-es-default"
             - name: ELASTICINDEX
               value: "jobs"
             - name: MARIADB_USER

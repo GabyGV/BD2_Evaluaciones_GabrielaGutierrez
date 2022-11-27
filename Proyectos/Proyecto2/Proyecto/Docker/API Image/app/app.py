@@ -11,8 +11,6 @@ urllib3.disable_warnings()
 # Variables de entorno
 
 #USUARIO, PASSWORD E INDICE DE ELASTICSEARCH
-ELASTIC_PASSWORD = os.getenv("ELASTICPASS")
-ELASTIC_ENDPOINT = os.getenv("ELASTICENDPOINT")
 ELASTIC_INDEX = os.getenv("ELASTICINDEX")
 
 #USUARIO, PASSWORD Y PUERTO DE MARIADB
@@ -20,7 +18,8 @@ MARIADB_USER = os.getenv("MARIADB_USER")
 MARIADB_ENDPOINT = os.getenv("MARIADBENDPOINT")
 MARIADB_PASSWORD = os.getenv("MARIADBPASS")
 MARIADB_PORT = os.getenv("MARIADBPORT")
-database = os.getenv("MARIADB_DB")
+MARIADB_DB = os.getenv("MARIADB_DB")
+
 
 # Inicializa el API
 app = Flask(__name__)
@@ -28,17 +27,18 @@ app = Flask(__name__)
 @app.route('/app/getData')
 def getMessage():
 
+    # Conexión con MariaDB
     try:
         conn = mariadb.connect(
             user=MARIADB_USER,
             password=MARIADB_PASSWORD,
             host=MARIADB_ENDPOINT,
             port=int(MARIADB_PORT),
-            database="car_db",
+            database=MARIADB_DB,
         )
 
         cur = conn.cursor()
-        cur.execute(f"SELECT * from car")
+        cur.execute(f"INSERT INTO jobs(created_time,_status,end_time,loader,grp_size) VALUES (NOW(), 'new', NULL, NULL, 100);")
 
         # Código de https://stackoverflow.com/questions/43796423/python-converting-mysql-query-result-to-json
         # Convierte el resultado del select en un json
@@ -56,24 +56,25 @@ def getMessage():
         print(f"Error connecting to MariaDB Platform: {e}")
         return (f"Error connecting to MariaDB Platform: {e}")
 
-@app.route('/app/insertJob/<name>', methods=["POST"])
-def setMessage(name):
+@app.route('/app/insertJob', methods=["POST"])
+def insertJob():
 
+    # Conexión con MariaDB
     try:
         conn = mariadb.connect(
             user=MARIADB_USER,
             password=MARIADB_PASSWORD,
             host=MARIADB_ENDPOINT,
             port=int(MARIADB_PORT),
-            database="people_db",
+            database=MARIADB_DB,
         )
 
         cur = conn.cursor()
-        cur.execute(f"INSERT INTO persona (cedula, nombre) VALUES (?, ?)", (425, name))
+        cur.execute(f"INSERT INTO jobs(created_time,_status,end_time,loader,grp_size) VALUES (NOW(), 'new', NULL, NULL, 100)")
         conn.commit()
         conn.close()
 
-        return name
+        return "Nuevo job insertado"
 
     except mariadb.Error as e:
         print(f"Error connecting to MariaDB Platform: {e}")
