@@ -50,6 +50,8 @@ spec:
               value: "root"
             - name: MARIADB_DB
               value: "workload"
+            - name: ELASTICENDPOINT
+              value: "elasticsearch-master"
 
           resources:
             limits:
