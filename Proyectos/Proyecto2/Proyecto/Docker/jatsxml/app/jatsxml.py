@@ -5,6 +5,37 @@ import xmltodict
 from elasticsearch import Elasticsearch
 import mariadb
 import pika
+import os
+import urllib3
+
+### CONEXIONES
+# RabbitMQ
+RABBIT_USER = os.getenv("RABBIT_USER")
+RABBITMQPASS = os.getenv("RABBITMQPASS")
+RABBITMQ = os.getenv("RABBITMQ")
+IN_QUEUE = os.getenv("IN_QUEUE")
+OUT_QUEUE = os.getenv("IN_QUEUE")
+
+# MARIADB
+MARIADB_ENDPOINT = os.getenv("MARIADBENDPOINT")
+MARIADB_PASSWORD = os.getenv("MARIADBPASS")
+MARIADB_USER = os.getenv("MARIADB_USER")
+MARIADB_DB = os.getenv("MARIADB_DB")
+MARIADBPORT = os.getenv("MARIADBPORT")
+# URL API de bioRXiv
+API_URL = os.getenv("API_URL")
+# Elastic
+ELASTIC_PASSWORD = os.getenv("ELASTICPASS")
+ELASTIC_ENDPOINT = os.getenv("ELASTICENDPOINT")
+ELASTIC_INDEX = os.getenv("ELASTICINDEX")
+ELASTIC_INDEX = os.getenv("")
+
+HOSTNAME = os.getenv("HOSTNAME")
+
+urllib3.disable_warnings()
+
+
+# http://localhost:53644/   pass:f1a9qqwhIJ
 
 ### RECIBIR DE LA COLA
 
