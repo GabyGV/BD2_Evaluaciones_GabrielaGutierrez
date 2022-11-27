@@ -1,6 +1,4 @@
 requests
-json
-datetime
 elasticsearch
 pika
 mariadb

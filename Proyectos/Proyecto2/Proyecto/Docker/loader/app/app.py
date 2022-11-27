@@ -13,7 +13,7 @@ RABBIT_USER = os.getenv("RABBIT_USER")
 RABBITMQPASS = os.getenv("RABBITMQPASS")
 RABBITMQ = os.getenv("RABBITMQ")
 IN_QUEUE = os.getenv("IN_QUEUE")
-OUT_QUEUE = os.getenv("IN_QUEUE")
+OUT_QUEUE = os.getenv("OUT_QUEUE")
 
 # MARIADB
 MARIADB_ENDPOINT = os.getenv("MARIADBENDPOINT")
@@ -96,7 +96,6 @@ while True:
     if jobs != None:
         channel = connection.channel()
         channel.queue_declare(queue=OUT_QUEUE)
-
         id = jobs[0]
         grp_size = jobs[1]
 
